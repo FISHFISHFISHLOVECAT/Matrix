@@ -5,6 +5,8 @@
 #include <cstring>
 #include <sstream>
 #include <cmath>
+#include <ctime>
+#include <random>
 #include "matrix.hpp"
 
 Matrix::Matrix()
@@ -14,7 +16,7 @@ Matrix::Matrix()
     _data=nullptr;
 }
 
-Matrix::Matrix(int row,int col)
+Matrix::Matrix(size_t row,size_t col)
 {
     create(row,col);
 }
@@ -75,7 +77,7 @@ void Matrix::destroy()
     _col=0;
 }
 
-void Matrix::create(int row,int col)
+void Matrix::create(size_t row,size_t col)
 {
     _col=col;
     _row=row;
@@ -86,10 +88,10 @@ void Matrix::create(int row,int col)
 
 }
 
-Matrix Matrix::slice(int brow,int erow,int bcol,int ecol)
+Matrix Matrix::slice(size_t brow,size_t erow,size_t bcol,size_t ecol)
 {
-    int row=erow-brow+1;
-    int col=ecol-bcol+1;
+    size_t row=erow-brow+1;
+    size_t col=ecol-bcol+1;
     if(row<0||col<0||row>this->_row||col>this->_col)
     {
         std::cout<<"Invalid slice parameter, ";
@@ -109,7 +111,7 @@ Matrix Matrix::slice(int brow,int erow,int bcol,int ecol)
     return tmp;
 }
 
-Matrix Matrix::eye(int row,int col)
+Matrix Matrix::eye(size_t row,size_t col)
 {
     static Matrix mateye(static_max_size,static_max_size);
     if(row>static_max_size||col>static_max_size)
@@ -135,7 +137,7 @@ Matrix Matrix::eye(int row,int col)
     return mateye;
 }
 
-Matrix Matrix::ones(int row,int col)
+Matrix Matrix::ones(size_t row,size_t col)
 {
     static Matrix matones(static_max_size,static_max_size);
     if(row>static_max_size||col>static_max_size)
@@ -157,7 +159,7 @@ Matrix Matrix::ones(int row,int col)
     return matones;
 }
 
-Matrix Matrix::zeros(int row,int col)
+Matrix Matrix::zeros(size_t row,size_t col)
 {
     static Matrix matzeros(static_max_size,static_max_size);
     if(row>static_max_size||col>static_max_size)
@@ -179,7 +181,33 @@ Matrix Matrix::zeros(int row,int col)
     return matzeros;
 }
 
-double& Matrix::operator()(int i)
+
+
+Matrix Matrix::rand(size_t row,size_t col)
+{
+    static Matrix matrand(static_max_size,static_max_size);
+    if(row>static_max_size||col>static_max_size)
+    {
+        std::cout<<"Out of max size"<<static_max_size<<std::endl;
+        matrand._row=4;
+        matrand._col=4;
+        return matrand;
+    }
+    static std::uniform_real_distribution<double> u;
+    static std::default_random_engine e(static_cast<unsigned>(time(0)));
+    for(int i=0;i<matrand._row;i++)
+    {
+        for(int j=0;j<matrand._col;j++)
+        {
+           matrand._data[i][j]=u(e);
+        }
+    }
+    matrand._row=row;
+    matrand._col=col;
+    return matrand;
+}
+
+double& Matrix::operator()(size_t i)
 {
     if(this->_col==1)
     {
@@ -198,7 +226,7 @@ double& Matrix::operator()(int i)
     return data_ij;
 }
 
-Matrix Matrix::operator()(int brow,int erow,range r)
+Matrix Matrix::operator()(size_t brow,size_t erow,range r)
 {
     switch (r)
     {
@@ -211,7 +239,7 @@ Matrix Matrix::operator()(int brow,int erow,range r)
     return *this; 
 }
 
-Matrix Matrix::operator()(range r,int bcol,int ecol)
+Matrix Matrix::operator()(range r,size_t bcol,size_t ecol)
 {
     switch (r)
     {
@@ -224,7 +252,7 @@ Matrix Matrix::operator()(range r,int bcol,int ecol)
     return *this; 
 }
 
-Matrix Matrix::operator()(range r,int col)
+Matrix Matrix::operator()(range r,size_t col)
 {
     switch (r)
     {
@@ -237,7 +265,7 @@ Matrix Matrix::operator()(range r,int col)
     return *this; 
 }
 
-Matrix Matrix::operator()(int row,range r)
+Matrix Matrix::operator()(size_t row,range r)
 {
     switch (r)
     {
@@ -251,7 +279,7 @@ Matrix Matrix::operator()(int row,range r)
 }
 
 
-double& Matrix::operator()(int i,int j)
+double& Matrix::operator()(size_t i,size_t j)
 {
     decltype(_data[i][j]) data_ij=_data[i][j]; 
     return data_ij;
@@ -337,6 +365,40 @@ Matrix Matrix::operator*(double k)
 }
 
 
+bool Matrix::operator==(const Matrix rmat)
+{
+    if(rmat._row!=this->_row||rmat._col!=this->_col)
+    {
+        return false;
+    }
+    for(int i=0;i<this->_row;i++)
+      {
+          for(int j=0;j<this->_col;j++)
+          {
+              if(rmat._data[i][j]!=this->_data[i][j])
+                  return false;
+          }
+      }
+    return true;
+}
+
+
+bool Matrix::operator!=(const Matrix rmat)
+{
+    if(rmat._row!=this->_row||rmat._col!=this->_col)
+    {
+        return true;
+    }
+    for(int i=0;i<this->_row;i++)
+      {
+          for(int j=0;j<this->_col;j++)
+          {
+              if(rmat._data[i][j]!=this->_data[i][j])
+                  return true;
+          }
+      }
+    return false;
+}
 
 Matrix Matrix::hori(Matrix a,Matrix b)
 {
@@ -398,7 +460,7 @@ Matrix Matrix::vert(Matrix a,Matrix b)
     return result;
 }
 
-Matrix Matrix::reshape(int row,int col)
+Matrix Matrix::reshape(size_t row,size_t col)
 {
     if(row*col!=_row*_col)
     {
@@ -468,8 +530,8 @@ void operator>>(std::string strmat,Matrix &mat)
 {
     std::string tmpstr=strmat;
     std::vector<double> result;
-    int row=1;
-    int col=1;
+    unsigned row=1;
+    unsigned col=1;
     for(int i=0;i<tmpstr.size();i++)
     {
         if(tmpstr[i]==';') 
@@ -497,7 +559,6 @@ void split(const std::string&s,const std::string & delim,std::vector<double> &el
 {
     size_t last=0;
     size_t index;
-    int row=1;
     index=s.find_first_of(delim,last);
     std::string str;
     double digit;

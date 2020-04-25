@@ -18,47 +18,59 @@ enum range
 class Matrix
 {
     public:
+        //constructor and destructor
         Matrix();
-        Matrix(int row,int col);
+        Matrix(size_t row,size_t col);
         Matrix(const Matrix & mat);
         Matrix(std::initializer_list<double> lst);
         ~Matrix();
-
+        //overload cout and cin
         friend std::ostream &operator<<(std::ostream &os,const Matrix &mat);
         friend std::istream &operator>>(std::istream &is,Matrix &mat);
         friend void operator>>(std::string strmat,Matrix &mat);
-
+        //overload operator + - * / and scalar multimple
         Matrix operator+(const Matrix rmat);
         Matrix operator-(const Matrix rmat);
         Matrix operator*(const Matrix rmat);
         Matrix operator*(double k);
         Matrix operator=(const Matrix rmat);
-        Matrix& operator()(std::string range);
-        double& operator()(int i,int j);
-        double& operator()(int i);
-        Matrix operator()(int brow,int erow,range r);
-        Matrix operator()(range r,int bcol,int ecol);
-        Matrix operator()(int row,range r);
-        Matrix operator()(range r,int col);
-
+        bool operator==(const Matrix rmat);
+        bool operator!=(const Matrix rmat);
+        
+        //submatrix operator
+        double& operator()(size_t i,size_t j);
+        double& operator()(size_t i);
+        Matrix operator()(size_t brow,size_t erow,range r);
+        Matrix operator()(range r,size_t bcol,size_t ecol);
+        Matrix operator()(size_t row,range r);
+        Matrix operator()(range r,size_t col);
+    
+        //concatenates and reshape
         static Matrix hori(Matrix a,Matrix b);
         static Matrix vert(Matrix a,Matrix b);
-        Matrix reshape(int row,int col);
+        Matrix reshape(size_t row,size_t col);
+        Matrix slice(size_t brow,size_t erow,size_t bcol,size_t ecol);
+    
+        //common matrix form
+        static Matrix eye(size_t row,size_t col);
+        static Matrix ones(size_t row,size_t col);
+        static Matrix zeros(size_t row,size_t col);
+        static Matrix rand(size_t row,size_t col);
+    
+        //extra operator: transpose,inverse
         Matrix transpose();
-        Matrix slice(int brow,int erow,int bcol,int ecol);
-        static Matrix eye(int row,int col);
-        static Matrix ones(int row,int col);
-        static Matrix zeros(int row,int col);
+        //bool inverse
+        
+        //status of the matrix
         bool is_empty();
         void print();
         void test();
-    public:
-        int _row;
-        int _col;
-        double ** _data;
     private:
+        size_t _row;
+        size_t _col;
+        double ** _data;
         void destroy();
-        void create(int row,int col);
+        void create(size_t row,size_t col);
 };
 void split(const std::string&s,const std::string & delim,std::vector<double> &ele);
 
